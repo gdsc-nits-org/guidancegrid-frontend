@@ -1,6 +1,6 @@
 export default function Home() {
   return (
-    <div>
+    <div className="prose">
       <h1>GUIDANCE GRID FRONTEND</h1>
     </div>
   );
