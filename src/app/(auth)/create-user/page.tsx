@@ -1,5 +1,6 @@
 "use client";
 
+import { env } from "@/config";
 import { useSearchParams } from "next/navigation";
 import { useState} from "react";
 import { toast } from "sonner"
@@ -33,7 +34,7 @@ export default function CreateAccountPage() {
     const isValid = checkValid();
     if(isValid) {
       try{
-        const res = await fetch("http://localhost:4000/api/v1/auth/create-user", {
+        const res = await fetch(`${env.NEXT_PUBLIC_BACKEND_URI}/auth/create-user`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
