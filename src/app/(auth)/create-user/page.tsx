@@ -16,11 +16,11 @@ export default function CreateAccountPage() {
 
   const checkValid = () => {
     if (username === "" || firstname === "" || lastname === "" || password === "") {
-      toast("Please fill all the fields")
+      toast.error("Please fill all the fields")
       return false;
     } else {
       if(password.length < 8) {
-        alert("Password must be at least 8 characters long");
+        toast.error("Password must be at least 8 characters long");
         return false;
       }
       else{
@@ -50,12 +50,12 @@ export default function CreateAccountPage() {
         const data = await res.json();
         
         if (data.status === 200) {
-          alert("Account created");
+          toast.success("Account created");
         } else {
-          alert("Account not created");
+          toast.error("Account not created");
         }
       } catch(err) {
-        alert("Error creating account");
+        toast.error("Error creating account");
       }
     }
   }
