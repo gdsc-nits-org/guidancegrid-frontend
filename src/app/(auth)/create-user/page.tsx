@@ -1,38 +1,55 @@
 "use client";
 
-import { env } from "@/config";
 import { useSearchParams } from "next/navigation";
-import { useState} from "react";
 import { toast } from "sonner"
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod"
+import { useForm } from "react-hook-form"
+import { env } from "@/config";
+
+import { Button } from "@/components/ui/button"
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form"
+import { Input } from "@/components/ui/input"
+
+const formSchema = z.object({
+  username: z.string().min(2,{
+    message: "Username must be at least 2 characters long",
+  }).max(20,{
+    message: "Username must be at most 20 characters long",
+  }),
+  firstName: z.string().min(1,{
+    message: "Firstname must be at least 1 character long",
+  }),
+  lastName: z.string(),
+  password: z.string().min(8,{
+    message: "Password must be at least 8 characters long",
+  })
+});
 
 export default function CreateAccountPage() {
 
   const router = useSearchParams();
   const token = router.get("token");
 
-  const [username, setUsername] = useState("");
-  const [firstname, setFirstname] = useState("");
-  const [lastname, setlastname] = useState("");
-  const [password, setPassword] = useState("");
-
-  const checkValid = () => {
-    if (username === "" || firstname === "" || lastname === "" || password === "") {
-      toast.error("Please fill all the fields")
-      return false;
-    } else {
-      if(password.length < 8) {
-        toast.error("Password must be at least 8 characters long");
-        return false;
-      }
-      else{
-        return true;
-      }
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      username: "",
+      firstName: "",
+      lastName: "",
+      password: "",
     }
-  }
+  });
 
-  const handleSubmit = async () => {
-    const isValid = checkValid();
-    if(isValid) {
+  const onSubmit = async (values:z.infer<typeof formSchema>) => {
+      const { username, firstName, lastName, password } = values;
       try{
         const res = await fetch(`${env.NEXT_PUBLIC_BACKEND_URI}/auth/create-user`, {
           method: "POST",
@@ -41,10 +58,10 @@ export default function CreateAccountPage() {
             Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify({
-            username: username,
-            firstName: firstname,
-            lastName: lastname,
-            password: password,
+            username,
+            firstName,
+            lastName,
+            password,
           }),
         });
         
@@ -59,52 +76,65 @@ export default function CreateAccountPage() {
         toast.error("Error creating account");
       }
     }
-  }
+  
 
   return (
-    <div>
-      <form action="" className="flex flex-col p-10">
-        <label htmlFor="username">Username</label>
-        <input
-          type="text"
-          value={username}
-          onChange={(e) => {
-            setUsername(e.target.value);
-          }}
-          className="border border-3 border-solid border-gray-500"
-        />
-        <label htmlFor="firstname">Firstname</label>
-        <input
-          type="text"
-          value={firstname}
-          onChange={(e) => {
-            setFirstname(e.target.value);
-          }}
-          className="border border-3 border-solid border-gray-500"
-        />
-        <label htmlFor="lastname">Lastname</label>
-        <input
-          type="text"
-          value={lastname}
-          onChange={(e) => {
-            setlastname(e.target.value);
-          }}
-          className="border border-3 border-solid border-gray-500"
-        />
-        <label htmlFor="password">Password</label>
-        <input
-          type="text"
-          value={password}
-          onChange={(e) => {
-            setPassword(e.target.value);
-          }}
-          className="border border-3 border-solid border-gray-500"
-        />
-        <button onClick={(e) => {
-          e.preventDefault();
-          handleSubmit();
-        }}>Submit</button>
-      </form>
-    </div>
+    <Form {...form}>
+    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8 mx-auto w-5/6 p-3 m-3 border">
+      <FormField
+        control={form.control}
+        name="username"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Username</FormLabel>
+            <FormControl>
+              <Input placeholder="username" {...field} />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+      <FormField
+        control={form.control}
+        name="firstName"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>First Name</FormLabel>
+            <FormControl>
+              <Input placeholder="firstName" {...field} />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+      <FormField
+        control={form.control}
+        name="lastName"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Last Name</FormLabel>
+            <FormControl>
+              <Input placeholder="lastName" {...field} />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+      <FormField
+        control={form.control}
+        name="password"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Password</FormLabel>
+            <FormControl>
+              <Input type="password" placeholder="password" {...field} />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+      <Button type="submit">Submit</Button>
+    </form>
+  </Form>
   );
 }
