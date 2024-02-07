@@ -42,11 +42,9 @@ export default function CreateAccountPage() {
   const router = useSearchParams();
   const { push } = useRouter();
   const [email, setEmail] = useState("");
+  const [isDisabled, setIsDisabled] = useState(false);
 
-  if(!router.get("token")){
-    push('/error');
-  }
-  const token = router.get("token");
+  const token: string = router.get("token") ?? "";
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -58,36 +56,46 @@ export default function CreateAccountPage() {
     },
   });
 
-  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+  const accountCreation = async(values: z.infer<typeof formSchema>) => {
     const { username, firstName, lastName, password } = values;
-    try {
-      const res = await fetch(
-        `${env.NEXT_PUBLIC_BACKEND_URI}/auth/create-user`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            username,
-            firstName,
-            lastName,
-            password,
-          }),
-        }
-      );
-
-      const data = await res.json();
-
-      if (data.status === 200) {
-        toast.success("Account created");
-      } else {
-        toast.error("Account not created");
+    const res = await fetch(
+      `${env.NEXT_PUBLIC_BACKEND_URI}/auth/create-user`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          username,
+          firstName,
+          lastName,
+          password,
+        }),
       }
-    } catch (err) {
-      toast.error("Error creating account");
+    );
+
+    const data = await res.json();
+    if (data.status === 200) {
+      return {msg: "Account created successfully"};
     }
+    throw { msg: data.msg };
+  }
+
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    setIsDisabled(true);
+    toast.promise(accountCreation(values), {
+      loading: "Creating Account...",
+      success: (data: {msg: string}) => {
+        setIsDisabled(false);
+        return data.msg;
+      },
+      error: (e) => {
+        setIsDisabled(false);
+        if(e.msg) return e.msg;
+        else return "Error creating account";
+      },
+    });
   };
 
   useEffect(()=>{
@@ -99,7 +107,7 @@ export default function CreateAccountPage() {
         push('/error')
       }
     })()
-  },[])
+  },[push, token])
 
   return (
     <Form {...form}>
@@ -172,7 +180,7 @@ export default function CreateAccountPage() {
               </FormItem>
             )}
           />
-          <Button type="submit" size="lg">Submit</Button>
+          <Button type="submit" size="lg" disabled={isDisabled}>Submit</Button>
         </form>
       </div>
     </Form>

@@ -42,16 +42,15 @@ export default function Verify() {
     isValidMail = true;
     if (isValidMail) {
       setIsDisabled(true);
-      setTimeout(() => {
-        setIsDisabled(false);
-      }, 5000); // 5 minutes
 
       toast.promise(sendVerificationMail(emailref.current?.value || ""), {
         loading: "Sending Email...",
         success: (data: { msg: string; status: string }) => {
+          setIsDisabled(false);
           return data.msg;
         },
         error: (e) => {
+          setIsDisabled(false);
           if(e.msg) return e.msg;
           else return "Error sending Email. Please try again later.";
         },
