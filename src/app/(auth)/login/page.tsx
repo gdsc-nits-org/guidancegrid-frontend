@@ -4,8 +4,9 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import Link from "next/link";
-
 import { Button } from "@/components/ui/button";
+import { env } from "@/config";
+
 import {
   Form,
   FormControl,
@@ -36,7 +37,15 @@ export default function Login() {
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     const { email, password } = values;
-    console.log(email, password);
+    const res = await fetch(`${env.NEXT_PUBLIC_BACKEND_URI}/auth/login`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify({ email, password }),
+    });
+    console.log(await res.json());
   };
   return (
     <Form {...form}>
@@ -72,10 +81,7 @@ export default function Login() {
             )}
           />
           <div className="flex flex-col justify-center items-center md:flex-row md:justify-between">
-            <Button
-              size="lg"
-              variant="default"
-            >
+            <Button size="lg" variant="default">
               Login
             </Button>
             <Link
