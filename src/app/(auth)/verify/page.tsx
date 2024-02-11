@@ -22,7 +22,8 @@ export default function Verify() {
         body: JSON.stringify({
           email: email,
         }),
-      }
+        credentials: "include",
+      },
     );
 
     const data = await res.json();
@@ -51,7 +52,7 @@ export default function Verify() {
         },
         error: (e) => {
           setIsDisabled(false);
-          if(e.msg) return e.msg;
+          if (e.msg) return e.msg;
           else return "Error sending Email. Please try again later.";
         },
       });
