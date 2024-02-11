@@ -22,7 +22,6 @@ export default function Verify() {
         body: JSON.stringify({
           email: email,
         }),
-        credentials: "include",
       },
     );
 
